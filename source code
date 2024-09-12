@@ -1,0 +1,34 @@
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import IsolationForest
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load sample data (replace with real insurance claim data)
+df = pd.read_csv('insurance_claims.csv')
+
+# Data Preprocessing
+# Handle missing values
+df = df.fillna(method='ffill')
+
+# Feature Engineering
+# Add new features if required (time of year, region, hospital, etc.)
+df['claim_date'] = pd.to_datetime(df['claim_date'])
+df['month'] = df['claim_date'].dt.month
+df['year'] = df['claim_date'].dt.year
+
+# Example feature set (customize based on actual data)
+features = ['procedure_cost', 'hospital_region', 'time_of_year', 'procedure_type', 'claim_amount']
+X = df[features]
+
+# Anomaly Detection with Isolation Forest (for detecting fraud)
+iso_forest = IsolationForest(contamination=0.1)
+df['anomaly_score'] = iso_forest.fit_predict(X)
+
+# Predict anomalies
+fraud_cases = df[df['anomaly_score'] == -1]  # -1 indicates anomaly/fraud
+
+# Splitting the dataset for classification (train/test split)
+X_train, X_test, y_train, y_test = train_test_split(X, df['anomaly_score'], test_size=0.3, random_state=42)
